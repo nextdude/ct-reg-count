@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="description" content="Race Registration Reg Count App">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChronTrack Live Reg Count</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
+  <style>
+    .form {
+      margin: 50px;
+      padding: 50px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .list {
+      padding: 0px 50px;
+    }
+    .hd {
+      font-size: 200%;
+      font-weight: bold;
+    }
+  </style>
+  <script>
+    function setAuth(ev, xhr) {
+      var email = $('#email').val();
+      var pass = $('#password').val();
+      if (!email || !pass) {
+        alert("Please enter your credentials to proceed");
+        ev.preventDefault();
+        return false;
+      }
+      var auth = "Basic " + window.btoa($('#email').val() + ":" + $('#password').val());
+      xhr.setRequestHeader('Authorization',auth);
+    }
+
+    function getRegCounts() {
+      console.log("Get Reg Counts");
+      var url = "https://qa-api.chronotrack.com/api/insight/reg-counts-by-event?client_id=727dae7f";
+      var span = $('#timespan').val();
+      var to = moment().unix();
+      var from;
+      if (span == "year") {
+        from = moment.utc().startOf("year").unix();
+      }
+      else {
+        from = moment.utc().subtract(parseInt(span,10),"seconds").unix();
+      }
+      var orgID = $('#orgID').val();
+      url += '&org_id=' + orgID + '&from=' + from + '&to=' + to;
+      $.getJSON(url,showData);
+      return false;
+    }
+
+    function showData(data) {
+      console.log(data.insight["reg-counts-by-event"]);
+      var tbody = "";
+      var count = 0;
+      data.insight["reg-counts-by-event"].results.forEach(function(row){
+        tbody += "<tr>";
+        ["event_id","event_name","event_date","reg_count"].forEach(function(key) {
+          tbody += "<td>"+row[key]+"</td>";
+        });
+        tbody += "</tr>";
+        count += parseInt(row.reg_count,0);
+      });
+      $('.count').text(count);
+      $('#results tbody').html(tbody);
+    }
+
+    $(function(){
+      $(document).ajaxSend(setAuth);
+    });
+  </script>
+</head>
+<body>
+<div class="form">
+<form class="form-horizontal">
+  <div class="form-group">
+    <label for="email" class="col-sm-1 control-label">Email</label>
+    <div class="col-sm-2">
+    <input type="email" class="form-control" id="email">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="password" class="col-sm-1 control-label">Password</label>
+    <div class="col-sm-2">
+    <input type="password" class="form-control" id="password">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="orgID" class="col-sm-1 control-label">Org ID</label>
+    <div class="col-sm-2">
+      <input type="text" class="form-control" id="orgID">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="timespan" class="col-sm-1 control-label">Time Span</label>
+    <div class="col-sm-2">
+      <select class="form-control" id="timespan">
+        <option value="300">Last 5 Minutes</options>
+        <option value="3600">Last Hour</options>
+        <option value="86400">Last Day</option>
+        <option value="604800">Last 7 Days</option>
+        <option value="2592000">Last 30 Days</option>
+        <option value="year">This Year</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+  <div class="col-sm-offset-1 col-sm-2">
+  <button type="button" class="btn btn-primary" onclick="getRegCounts()">Get Reg Counts</button>
+  </div>
+  </div>
+</form>
+</div>
+
+<div class="list">
+<div class="hd pull-left">Confirmed Registration Counts</div>
+<div class="count hd pull-right"></div>
+<table class="table table-bordered table-striped table-hover table-condensed" id="results">
+<thead>
+<tr>
+<th>Event ID</th>
+<th>Event Name</th>
+<th>Event Date</th>
+<th>Reg Count</th>
+</tr>
+</thead>
+<tbody>
+<tr><td colspan="4">Waiting on data...</td></tr>
+</tbody>
+<tfoot>
+<tr>
+<th colspan="3">TOTAL</th>
+<th class="count">0</th>
+</tr>
+</tfoot>
+</table>
+</div>
+
+</body>
+</html>
