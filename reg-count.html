@@ -60,6 +60,7 @@
       console.log(data.insight["reg-counts-by-event"]);
       var tbody = "";
       var count = 0;
+      var events = 0;
       data.insight["reg-counts-by-event"].results.forEach(function(row){
         tbody += "<tr>";
         ["event_id","event_name","event_date","reg_count"].forEach(function(key) {
@@ -67,8 +68,10 @@
         });
         tbody += "</tr>";
         count += parseInt(row.reg_count,0);
+        events++;
       });
       $('.count').text(count);
+      $('.events').text(events);
       $('#results tbody').html(tbody);
     }
 
@@ -121,7 +124,10 @@
 
 <div class="list">
 <div class="hd pull-left">Confirmed Registration Counts</div>
-<div class="count hd pull-right"></div>
+<div class="hd pull-right">
+<span class="count">0</span> entries
+in <span class="events">0</span> events
+</div>
 <table class="table table-bordered table-striped table-hover table-condensed" id="results">
 <thead>
 <tr>
